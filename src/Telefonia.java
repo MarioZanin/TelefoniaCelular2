@@ -1,16 +1,13 @@
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Scanner;
-
 class Telefonia {
     private Assinante[] assinantes;
     private int numAssinantes;
-
     public Telefonia(int maxAssinantes) {
         this.assinantes = new Assinante[maxAssinantes];
         this.numAssinantes = 0;
     }
-
     private static Assinante criarAssinante() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Escolha o tipo de assinante (1 para Pré-pago, 2 para Pós-pago): ");
@@ -23,17 +20,15 @@ class Telefonia {
         String nome = scanner.nextLine();
         System.out.println("Digite o número do assinante: ");
         String numero = scanner.nextLine();
-
         if (tipo == 1) {
-            return new PrePago(cpf, nome, numero, 100, 50); // Exemplo de limite de 100 chamadas e 50 recargas
+            return new PrePago(cpf, nome, numero, 100, 50);
         } else if (tipo == 2) {
-            return new PosPago(cpf, nome, numero, 100, 150); // Exemplo de limite de 100 chamadas e assinatura de R$ 150
+            return new PosPago(cpf, nome, numero, 100, 150);
         } else {
             System.out.println("Tipo de assinante inválido.");
             return null;
         }
     }
-
     public void cadastrarAssinante(Assinante assinante) {
         if (numAssinantes < assinantes.length) {
             assinantes[numAssinantes] = assinante;
@@ -43,7 +38,6 @@ class Telefonia {
             System.out.println("Limite de assinantes atingido.");
         }
     }
-
     public void listarAssinantes() {
         System.out.println("Assinantes Pré-pagos:");
         for (int i = 0; i < numAssinantes; i++) {
@@ -51,7 +45,6 @@ class Telefonia {
                 System.out.println(assinantes[i]);
             }
         }
-
         System.out.println("Assinantes Pós-pagos:");
         for (int i = 0; i < numAssinantes; i++) {
             if (assinantes[i] instanceof PosPago) {
@@ -59,15 +52,12 @@ class Telefonia {
             }
         }
     }
-
     public void fazerRecarga() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Digite o CPF do assinante pré-pago para recarga: ");
         long cpf = scanner.nextLong();
         scanner.nextLine(); // Limpar o buffer
-
         PrePago assinante = (PrePago) localizarAssinante(cpf);
-
         if (assinante != null) {
             System.out.println("Digite o valor da recarga: ");
             float valorRecarga = scanner.nextFloat();
@@ -77,52 +67,47 @@ class Telefonia {
             System.out.println("Assinante pré-pago não encontrado.");
         }
     }
-
     public void fazerChamada() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Digite o CPF do assinante: ");
         long cpf = scanner.nextLong();
         scanner.nextLine(); // Limpar o buffer
-
         Assinante assinante = localizarAssinante(cpf);
-
         if (assinante != null) {
-            Chamada chamada = criarChamada(); // Adicionado para criar uma chamada
-            assinante.fazerChamada(chamada);
-            System.out.println("Chamada realizada com sucesso!");
+            if (assinante.podeFazerChamada()) {
+                Chamada chamada = criarChamada(); // Adicionado para criar uma chamada
+                assinante.fazerChamada(chamada);
+                System.out.println("Chamada processada com sucesso!");
+            } else {
+                System.out.println("Saldo insuficiente para fazer chamada. Faça uma recarga.");
+            }
         } else {
             System.out.println("Assinante não encontrado.");
         }
     }
-
     private Chamada criarChamada() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Digite a data da chamada (formato DD/MM/YYYY HH:MM:SS): ");
         String dataString = scanner.nextLine();
-        Calendar data = converterStringParaCalendar(dataString);
-
+        GregorianCalendar data = converterStringParaGregorianCalendar(dataString);
         System.out.println("Digite a duração da chamada em minutos: ");
         int duracaoEmMinutos = scanner.nextInt();
         scanner.nextLine(); // Limpar o buffer
-
         System.out.println("Digite o número discado: ");
         String numeroDiscado = scanner.nextLine();
-
         return new Chamada(data, duracaoEmMinutos, numeroDiscado);
     }
-
-    private Calendar converterStringParaCalendar(String dataString) {
+    private GregorianCalendar converterStringParaGregorianCalendar(String dataString) {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("DD/MM/YYYY HH:MM:SS");
-            Calendar calendar = Calendar.getInstance();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            GregorianCalendar calendar = new GregorianCalendar();
             calendar.setTime(sdf.parse(dataString));
             return calendar;
         } catch (Exception e) {
             System.out.println("Erro ao converter data. Utilizando data atual.");
-            return Calendar.getInstance();
+            return new GregorianCalendar();
         }
     }
-
     public void imprimirFaturas() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Digite o mês e o ano para imprimir as faturas (MM/YYYY): ");
@@ -130,13 +115,11 @@ class Telefonia {
         String[] partes = mesAno.split("/");
         int mes = Integer.parseInt(partes[0]);
         int ano = Integer.parseInt(partes[1]);
-
         System.out.println("Faturas do mês " + mes + " de " + ano + ":");
         for (int i = 0; i < numAssinantes; i++) {
             assinantes[i].imprimirFatura(mes, ano);
         }
     }
-
     private Assinante localizarAssinante(long cpf) {
         for (int i = 0; i < numAssinantes; i++) {
             if (assinantes[i].getCpf() == cpf) {
@@ -145,10 +128,8 @@ class Telefonia {
         }
         return null;
     }
-
     public static void main(String[] args) {
         Telefonia telefonia = new Telefonia(100);
-
         Scanner scanner = new Scanner(System.in);
         int opcao;
         do {
@@ -162,7 +143,6 @@ class Telefonia {
             System.out.print("Escolha uma opção: ");
             opcao = scanner.nextInt();
             scanner.nextLine(); // Limpar o buffer
-
             switch (opcao) {
                 case 1:
                     telefonia.cadastrarAssinante(criarAssinante());
